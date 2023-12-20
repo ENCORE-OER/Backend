@@ -1,2 +1,2 @@
 # Backend
-Encore Backed devoted to the data logs
+Encore Backend devoted to the data logs
