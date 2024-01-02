@@ -249,7 +249,7 @@ app.post('/api/deleteAllKeywords', async (req, res) => {
 
 /**
  * @swagger
- * /api/deleteAllKeywords:
+ * /api/health:
  *   get:
  *     summary: Get health status
  *     description: Endpoint to verify health status of the server.
