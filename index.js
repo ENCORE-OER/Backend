@@ -246,6 +246,24 @@ app.post('/api/deleteAllKeywords', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error.' });
     }
   });
+
+/**
+ * @swagger
+ * /api/deleteAllKeywords:
+ *   get:
+ *     summary: Get health status
+ *     description: Endpoint to verify health status of the server.
+ *     tags:
+ *       - System
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Health status
+ */
+app.get('/api/health', async (req, res) => {
+  res.status(200).json();
+});
   
 
 // Start the server
