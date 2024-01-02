@@ -9,15 +9,16 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Update the MongoDB connection options
-const mongooseOptions = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  };
+
+
   
+ // Connect to MongoDB
+mongoose.connect(process.env.ATLAS_URI);
+
+
+
 
 // Connect to MongoDB
-mongoose.connect(process.env.ATLAS_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 const connection = mongoose.connection;
 connection.once('open', () => {
   console.log('Connected to MongoDB');
@@ -164,6 +165,43 @@ app.post('/api/saveKeyword', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+
+/**
+ * @swagger
+ * /api/getAllKeywords:
+ *   get:
+ *     summary: Get all keywords
+ *     tags:
+ *       - Keywords
+ *     description: Endpoint to retrieve all keywords from the database.
+ *     responses:
+ *       200:
+ *         description: Keywords retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               keywords: ['keyword1', 'keyword2', 'keyword3']
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error.
+ */
+app.get('/api/getAllKeywords', async (req, res) => {
+    try {
+      // Retrieve all documents from the Keyword collection
+      const keywords = await Keyword.find({}, 'value');
+  
+      // Extract the values and send them in the response
+      const keywordValues = keywords.map((kw) => kw.value);
+      res.json({ keywords: keywordValues });
+    } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+    }
+  });
+  
 
 /**
  * @swagger
