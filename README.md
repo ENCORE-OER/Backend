@@ -1,2 +1,8 @@
 # Backend
-Encore Backend devoted to the data logs
+ENCORE Backend devoted to the data logs
+
+# LOCAL Execution
+npm start
+
+# API-DOCS
+http://localhost:3001/api-docs/
