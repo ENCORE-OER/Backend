@@ -38,6 +38,29 @@ const keywordSchema = new mongoose.Schema({
 
 const Keyword = mongoose.model('Keyword', keywordSchema);
 
+// Define a schema for OERs with count and description
+const oerSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    title: {
+        type: String,
+        required: true,
+    },
+    description: {
+        type: String,
+    },
+    count: {
+        type: Number,
+        default: 1,
+    },
+});
+
+const OER = mongoose.model('OER', oerSchema);
+
+
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
 
@@ -246,6 +269,175 @@ app.post('/api/deleteAllKeywords', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error.' });
     }
   });
+
+
+/**
+ * @swagger
+ * /api/saveOER:
+ *   post:
+ *     summary: Save an OER
+ *     description: Endpoint to save an OER selected to the database.
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: JSON object containing an OER property.
+ *         required: true
+ *         schema:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: string
+ *             title: 
+ *               type: string
+ *             description:
+ *               type: string
+ *     responses:
+ *       200:
+ *         description: OER saved successfully
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               description: Success message
+ *             OER:
+ *               type: string
+ *               description: The saved OER value
+ *         examples:
+ *           application/json:
+ *             message: OER saved successfully.
+ *             keyword: example_oer
+ *       400:
+ *         description: Bad request
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: OER is required.
+ *       409:
+ *         description: OER already exists
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: OER already exists.
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: Internal Server Error.
+ */
+app.post('/api/saveOER', async (req, res) => {
+    const { id, title, description } = req.body;
+
+    if (!id || !title) {
+        return res.status(400).json({ error: 'ID and title are required.' });
+    }
+
+    try {
+        // Check if the OER already exists
+        let existingOER = await OER.findOne({ id });
+
+        if (existingOER) {
+            // If the OER already exists, increment the count
+            existingOER.count += 1;
+            await existingOER.save();
+            res.json({ message: 'OER updated successfully.', oer: existingOER });
+        } else {
+            // If the OER does not exist, create a new one
+            const savedOER = await OER.create({ id, title, description });
+            res.json({ message: 'OER saved successfully.', oer: savedOER });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error.' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/getAllOERs:
+ *   get:
+ *     summary: Get all OERs
+ *     description: Endpoint to retrieve all saved OERs from the database.
+ *     tags:
+ *       - OERs
+ *     responses:
+ *       200:
+ *         description: OERs retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               oers: [{ id: "uniqueId1", title: "OER Title 1", description: "OER Description 1", count: 3 },
+ *                      { id: "uniqueId2", title: "OER Title 2", description: "OER Description 2", count: 1 }]
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error.
+ */
+app.get('/api/getAllOERs', async (req, res) => {
+    try {
+        const allOERs = await OER.find({});
+        res.json({ oers: allOERs });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error.' });
+    }
+});
+
+/**
+ * @swagger
+ * /api/getMaxCountOERs:
+ *   get:
+ *     summary: Get OERs with max count
+ *     description: Endpoint to retrieve OERs with the maximum count from the database.
+ *     tags:
+ *       - OERs
+ *     responses:
+ *       200:
+ *         description: OERs with max count retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               maxCountOERs: [{ id: "uniqueId1", title: "OER Title 1", description: "OER Description 1", count: 3 },
+ *                             { id: "uniqueId3", title: "OER Title 3", description: "OER Description 3", count: 3 }]
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error.
+ */
+app.get('/api/getMaxCountOERs', async (req, res) => {
+    try {
+        const maxCountOERs = await OER.find({}).sort({ count: -1 }).limit(2); // Adjust the limit as per your requirement
+        res.json({ maxCountOERs });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error.' });
+    }
+});
+
+
 
 /**
  * @swagger
