@@ -94,7 +94,6 @@ app.get('/swagger.json', (req, res) => {
 });
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 /**
  * @swagger
  * /api/saveKeyword:
@@ -188,8 +187,6 @@ app.post('/api/saveKeyword', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
-
-
 /**
  * @swagger
  * /api/getAllKeywords:
@@ -224,8 +221,6 @@ app.get('/api/getAllKeywords', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error.' });
     }
   });
-  
-
 /**
  * @swagger
  * /api/deleteAllKeywords:
@@ -269,8 +264,6 @@ app.post('/api/deleteAllKeywords', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error.' });
     }
   });
-
-
 /**
  * @swagger
  * /api/saveOER:
@@ -372,7 +365,6 @@ app.post('/api/saveOER', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
-
 /**
  * @swagger
  * /api/updateCount/{id}:
@@ -434,9 +426,6 @@ app.put('/api/updateCount/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
-
-
-
 /**
  * @swagger
  * /api/getAllOERs:
@@ -468,7 +457,6 @@ app.get('/api/getAllOERs', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
-
 /**
  * @swagger
  * /api/getMaxCountOERs:
@@ -500,8 +488,6 @@ app.get('/api/getMaxCountOERs', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
-
-
 /**
  * @swagger
  * /api/getCount/{id}:
@@ -552,9 +538,6 @@ app.get('/api/getCount/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
-
-
-
 /**
  * @swagger
  * /api/health:
@@ -571,9 +554,7 @@ app.get('/api/getCount/:id', async (req, res) => {
  */
 app.get('/api/health', async (req, res) => {
   res.status(200).json();
-});
-  
-
+});  
 // Start the server
 app.listen(port, "0.0.0.0", () => {
   console.log(`Server is running on port ${port}`);
