@@ -502,6 +502,58 @@ app.get('/api/getMaxCountOERs', async (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /api/getCount/{id}:
+ *   get:
+ *     summary: Get the count of an OER by ID
+ *     description: Endpoint to retrieve the count of an OER by its ID.
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the OER.
+ *     responses:
+ *       200:
+ *         description: OER count retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               count: 5
+ *       404:
+ *         description: OER not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: OER not found.
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error.
+ */
+app.get('/api/getCount/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const oer = await OER.findOne({ id });
+
+        if (oer) {
+            res.json({ count: oer.count });
+        } else {
+            res.status(404).json({ error: 'OER not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error.' });
+    }
+});
+
+
 
 /**
  * @swagger
