@@ -375,6 +375,70 @@ app.post('/api/saveOER', async (req, res) => {
 
 /**
  * @swagger
+ * /api/updateCount/{id}:
+ *   put:
+ *     summary: Update count of an OER and remove when count is 0
+ *     description: Endpoint to update the count of an OER by its ID. If the count reaches 0, the OER is removed from the database.
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the OER to be updated.
+ *     responses:
+ *       200:
+ *         description: OER count updated successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: OER count updated successfully.
+ *       404:
+ *         description: OER not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: OER not found.
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: Internal Server Error.
+ */
+app.put('/api/updateCount/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const oerToUpdate = await OER.findOne({ id });
+
+        if (oerToUpdate) {
+            // Update the count
+            const updatedCount = oerToUpdate.count - 1;
+
+            // If the count is 0, remove the OER
+            if (updatedCount === 0) {
+                await OER.findOneAndDelete({ id });
+                res.json({ message: 'OER count updated successfully. OER removed from the database.' });
+            } else {
+                // Update the count in the database
+                await OER.updateOne({ id }, { $set: { count: updatedCount } });
+                res.json({ message: 'OER count updated successfully.' });
+            }
+        } else {
+            res.status(404).json({ error: 'OER not found.' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'Internal Server Error.' });
+    }
+});
+
+
+
+/**
+ * @swagger
  * /api/getAllOERs:
  *   get:
  *     summary: Get all OERs
