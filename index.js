@@ -54,8 +54,13 @@ const oerSchema = new mongoose.Schema({
     },
     count: {
         type: Number,
-        default: 1,
+        default: 0,
     },
+    likes: {
+        type: Number,
+        default: 0,
+    },
+    
 });
 
 const OER = mongoose.model('OER', oerSchema);
@@ -538,6 +543,170 @@ app.get('/api/getCount/:id', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error.' });
     }
 });
+
+/**
+ * @swagger
+ * /api/likeOER/{id}:
+ *   post:
+ *     summary: Like an OER by ID
+ *     description: Endpoint to increment the like count of an OER by its ID.
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the OER.
+ *     responses:
+ *       200:
+ *         description: OER liked successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 'OER liked successfully.'
+ *       404:
+ *         description: OER not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'OER not found.'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Internal Server Error.'
+ */
+app.post('/api/likeOER/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const oer = await OER.findOne({ id });
+
+      if (oer) {
+          oer.likes += 1;
+          await oer.save();
+          res.json({ message: 'OER liked successfully.' });
+      } else {
+          res.status(404).json({ error: 'OER not found.' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/reduceLike/{id}:
+ *   put:
+ *     summary: Reduce likes of an OER by one
+ *     description: Endpoint to reduce the likes count of an OER by one.
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the OER.
+ *     responses:
+ *       200:
+ *         description: Likes reduced successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 'Like reduced successfully.'
+ *       404:
+ *         description: OER not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'OER not found.'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Internal Server Error.'
+ */
+app.put('/api/reduceLike/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const oer = await OER.findOne({ id });
+
+      if (oer) {
+          if (oer.likes > 0) {
+              oer.likes -= 1;
+              await oer.save();
+              res.json({ message: 'Like reduced successfully.' });
+          } else {
+              res.json({ message: 'Likes count is already zero.' });
+          }
+      } else {
+          res.status(404).json({ error: 'OER not found.' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
+/**
+ * @swagger
+ * /api/getLikes/{id}:
+ *   get:
+ *     summary: Get the likes of an OER by ID
+ *     description: Endpoint to retrieve the likes count of an OER by its ID.
+ *     tags:
+ *       - OERs
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the OER.
+ *     responses:
+ *       200:
+ *         description: Likes count retrieved successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               likes: 10
+ *       404:
+ *         description: OER not found
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'OER not found.'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Internal Server Error.'
+ */
+app.get('/api/getLikes/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const oer = await OER.findOne({ id });
+
+      if (oer) {
+          res.json({ likes: oer.likes });
+      } else {
+          res.status(404).json({ error: 'OER not found.' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
 /**
  * @swagger
  * /api/health:
