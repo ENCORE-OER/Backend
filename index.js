@@ -546,6 +546,39 @@ app.get('/api/getCount/:id', async (req, res) => {
 
 /**
  * @swagger
+ * /api/resetAllOERCounts:
+ *   put:
+ *     summary: Reset counts of all OERs to zero
+ *     description: Endpoint to set the count of all OERs to zero.
+ *     tags:
+ *       - OERs
+ *     responses:
+ *       200:
+ *         description: Counts reset successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 'Counts reset to zero successfully.'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Internal Server Error.'
+ */
+app.put('/api/resetAllOERCounts', async (req, res) => {
+  try {
+      // Reset the count of all OERs to zero
+      await OER.updateMany({}, { $set: { count: 0 } });
+      res.json({ message: 'Counts reset to zero successfully.' });
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
+/**
+ * @swagger
  * /api/likeOER/{id}:
  *   post:
  *     summary: Like an OER by ID
@@ -703,6 +736,39 @@ app.get('/api/getLikes/:id', async (req, res) => {
       } else {
           res.status(404).json({ error: 'OER not found.' });
       }
+  } catch (error) {
+      res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
+/**
+ * @swagger
+ * /api/deleteAllOERs:
+ *   delete:
+ *     summary: Delete all memorized OERs
+ *     description: Endpoint to delete all the OERs memorized in the database.
+ *     tags:
+ *       - OERs
+ *     responses:
+ *       200:
+ *         description: All OERs deleted successfully
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: 'All OERs deleted successfully.'
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             example:
+ *               error: 'Internal Server Error.'
+ */
+app.delete('/api/deleteAllOERs', async (req, res) => {
+  try {
+      // Delete all memorized OERs
+      await OER.deleteMany({});
+      res.json({ message: 'All OERs deleted successfully.' });
   } catch (error) {
       res.status(500).json({ error: 'Internal Server Error.' });
   }
