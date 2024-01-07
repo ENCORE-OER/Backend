@@ -537,7 +537,7 @@ app.get('/api/getCount/:id', async (req, res) => {
         if (oer) {
             res.json({ count: oer.count });
         } else {
-            res.status(404).json({ error: 'OER not found.' });
+          res.json({ count: 0 });
         }
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error.' });
@@ -590,7 +590,9 @@ app.post('/api/likeOER/:id', async (req, res) => {
           await oer.save();
           res.json({ message: 'OER liked successfully.' });
       } else {
-          res.status(404).json({ error: 'OER not found.' });
+        oer.likes = 1;
+        await oer.save();
+        res.json({ message: 'OER liked successfully the first time.' });
       }
   } catch (error) {
       res.status(500).json({ error: 'Internal Server Error.' });
