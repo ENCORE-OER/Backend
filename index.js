@@ -58,7 +58,7 @@ const oerSchema = new mongoose.Schema({
     },
     likes: {
         type: Number,
-        default: 1,
+        default: 0,
     },
     
 });
@@ -178,20 +178,23 @@ app.post('/api/saveKeyword', async (req, res) => {
     return res.status(400).json({ error: 'Keyword is required.' });
   }
 
+  const lowercaseKeyword = keyword.toLowerCase(); // Convert keyword to lowercase
+
   try {
     // Try to create a new keyword; if it already exists, catch the error
-    const savedKeyword = await Keyword.create({ value: keyword });
+    const savedKeyword = await Keyword.findOneAndUpdate(
+      { value: lowercaseKeyword },
+      { value: lowercaseKeyword },
+      { upsert: true, new: true }
+    );
+
     res.json({ message: 'Keyword saved successfully.', keyword: savedKeyword.value });
   } catch (error) {
-    // Handle duplicate key error (keyword already exists)
-    if (error.code === 11000) {
-      return res.status(409).json({ error: 'Keyword already exists.' });
-    }
-
     // Handle other errors
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
 /**
  * @swagger
  * /api/getAllKeywords:
