@@ -65,6 +65,40 @@ const oerSchema = new mongoose.Schema({
 
 const OER = mongoose.model('OER', oerSchema);
 
+// Define a schema for Learning Scenarios
+const learningScenarioSchema = new mongoose.Schema({
+  Context: {
+    EducatorExperience: String,
+    EducationContext: String,
+    Dimension: String,
+    LearnerExperience: String,
+  },
+  Objective: {
+    BloomLevel: String,
+    Skills: [Number],
+    LearningContext: String,
+  },
+  Path: {
+    Nodes: [
+      {
+        ID: Number,
+        Title: String,
+        Type: String,
+      },
+    ],
+    Edges: [
+      {
+        SourceID: Number,
+        TargetID: Number,
+        Type: String,
+      },
+    ],
+  },
+});
+
+// Create a model for Learning Scenarios
+const LearningScenarioModel = mongoose.model('LearningScenario', learningScenarioSchema);
+
 
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
@@ -776,6 +810,216 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+/**
+ * @swagger
+ * definitions:
+ *   LearningScenario:
+ *     type: object
+ *     properties:
+ *       LearningScenario:
+ *         type: object
+ *         properties:
+ *           Context:
+ *             type: object
+ *             properties:
+ *               EducatorExperience:
+ *                 type: string
+ *               EducationContext:
+ *                 type: string
+ *               Dimension:
+ *                 type: string
+ *               LearnerExperience:
+ *                 type: string
+ *           Objective:
+ *             type: object
+ *             properties:
+ *               BloomLevel:
+ *                 type: string
+ *               Skills:
+ *                 type: array
+ *                 items:
+ *                   type: number
+ *               LearningContext:
+ *                 type: string
+ *           Path:
+ *             type: object
+ *             properties:
+ *               Nodes:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     ID:
+ *                       type: number
+ *                     Title:
+ *                       type: string
+ *                     Type:
+ *                       type: string
+ *               Edges:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     SourceID:
+ *                       type: number
+ *                     TargetID:
+ *                       type: number
+ *                     Type:
+ *                       type: string
+ *     example:
+ *       LearningScenario:
+ *         Context:
+ *           EducatorExperience: "Experienced"
+ *           EducationContext: "High School"
+ *           Dimension: "Science"
+ *           LearnerExperience: "Intermediate"
+ *         Objective:
+ *           BloomLevel: "Analyzing"
+ *           Skills: [1, 2, 3]
+ *           LearningContext: "Physics"
+ *         Path:
+ *           Nodes:
+ *             - ID: 1
+ *               Title: "Introduction"
+ *               Type: "Content"
+ *             - ID: 2
+ *               Title: "Experiment"
+ *               Type: "Activity"
+ *             - ID: 3
+ *               Title: "Discussion"
+ *               Type: "Interaction"
+ *             - ID: 4
+ *               Title: "Assessment"
+ *               Type: "Evaluation"
+ *           Edges:
+ *             - SourceID: 1
+ *               TargetID: 2
+ *               Type: "Prerequisite"
+ *             - SourceID: 2
+ *               TargetID: 3
+ *               Type: "Sequential"
+ *             - SourceID: 3
+ *               TargetID: 4
+ *               Type: "Sequential"
+ */
+
+
+/**
+ * @swagger
+ * /api/saveLearningScenario:
+ *   post:
+ *     summary: Save a Learning Scenario
+ *     description: Endpoint to save a Learning Scenario to the database.
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - Learning Scenarios
+ *     parameters:
+ *       - in: body
+ *         name: body
+ *         description: JSON object containing a Learning Scenario.
+ *         required: true
+ *         schema:
+ *           $ref: "#/definitions/LearningScenario"
+ *     responses:
+ *       200:
+ *         description: Learning Scenario saved successfully
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               description: Success message
+ *             learningScenario:
+ *               $ref: "#/definitions/LearningScenario"
+ *       400:
+ *         description: Bad request
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ */
+
+// Save a learning scenario
+app.post('/api/saveLearningScenario', async (req, res) => {
+  const { LearningScenario: learningScenarioData } = req.body;
+
+  if (!learningScenarioData) {
+    return res.status(400).json({ error: 'Learning scenario is required.' });
+  }
+
+  try {
+    // Create a new instance of the LearningScenario model
+    const learningScenario = new LearningScenarioModel(learningScenarioData);
+
+    // Save the learning scenario
+    const savedLearningScenario = await learningScenario.save();
+
+    res.json({ message: 'Learning scenario saved successfully.', learningScenario: savedLearningScenario });
+  } catch (error) {
+    console.error('Error saving Learning Scenario:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+/**
+ * @swagger
+ * /api/getAllLearningScenarios:
+ *   get:
+ *     summary: Get all learning scenarios
+ *     description: Endpoint to retrieve all learning scenarios from the database.
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - Learning Scenarios
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all learning scenarios
+ *         schema:
+ *           type: object
+ *           properties:
+ *             learningScenarios:
+ *               type: array
+ *               items:
+ *                 $ref: "#/definitions/LearningScenario"
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: Internal Server Error.
+ */
+// Get all learning scenarios
+app.get('/api/getAllLearningScenarios', async (req, res) => {
+  try {
+    // Retrieve all learning scenarios from the database
+    const allLearningScenarios = await LearningScenarioModel.find();
+
+    res.json({ learningScenarios: allLearningScenarios });
+  } catch (error) {
+    console.error('Error getting all Learning Scenarios:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
 
 
 /**
