@@ -65,7 +65,21 @@ const oerSchema = new mongoose.Schema({
 
 const OER = mongoose.model('OER', oerSchema);
 
-// Define a schema for Learning Scenarios
+
+// Define a schema for learning objectives
+const learningObjectiveSchema = new mongoose.Schema({
+  ID: {
+    type: Number,
+    default: 0,
+  },
+  BloomLevel: {
+    name: String,
+    verbs: [String],
+  },
+  Skills: [Number],
+  LearningContext: String,
+});
+
 const learningScenarioSchema = new mongoose.Schema({
   Context: {
     EducatorExperience: String,
@@ -73,11 +87,7 @@ const learningScenarioSchema = new mongoose.Schema({
     Dimension: String,
     LearnerExperience: String,
   },
-  Objective: {
-    BloomLevel: String,
-    Skills: [Number],
-    LearningContext: String,
-  },
+  Objective: learningObjectiveSchema, 
   Path: {
     Nodes: [
       {
@@ -96,9 +106,20 @@ const learningScenarioSchema = new mongoose.Schema({
   },
 });
 
-// Create a model for Learning Scenarios
-const LearningScenarioModel = mongoose.model('LearningScenario', learningScenarioSchema);
 
+
+
+function generateUniqueID() {
+  // Implement your logic to generate a unique numeric ID
+  // For simplicity, a random number is generated
+  return Math.floor(Math.random() * 1000);
+}
+
+
+
+
+// Create a model based on the schema
+const LearningScenarioModel = mongoose.model('LearningScenario', learningScenarioSchema);
 
 // Middleware to parse JSON requests
 app.use(bodyParser.json());
@@ -817,100 +838,97 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *   LearningScenario:
  *     type: object
  *     properties:
- *       LearningScenario:
+ *       Context:
  *         type: object
  *         properties:
- *           Context:
+ *           EducatorExperience:
+ *             type: string
+ *           EducationContext:
+ *             type: string
+ *           Dimension:
+ *             type: string
+ *           LearnerExperience:
+ *             type: string
+ *       Objective:
+ *         type: object
+ *         properties:
+ *           ID:
+ *             type: number
+ *           BloomLevel:
  *             type: object
  *             properties:
- *               EducatorExperience:
+ *               name:
  *                 type: string
- *               EducationContext:
- *                 type: string
- *               Dimension:
- *                 type: string
- *               LearnerExperience:
- *                 type: string
- *           Objective:
- *             type: object
- *             properties:
- *               BloomLevel:
- *                 type: string
- *               Skills:
+ *               verbs:
  *                 type: array
  *                 items:
- *                   type: number
- *               LearningContext:
- *                 type: string
- *           Path:
- *             type: object
- *             properties:
- *               Nodes:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     ID:
- *                       type: number
- *                     Title:
- *                       type: string
- *                     Type:
- *                       type: string
- *               Edges:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     SourceID:
- *                       type: number
- *                     TargetID:
- *                       type: number
- *                     Type:
- *                       type: string
- *     example:
- *       LearningScenario:
- *         Context:
- *           EducatorExperience: "Experienced"
- *           EducationContext: "High School"
- *           Dimension: "Science"
- *           LearnerExperience: "Intermediate"
- *         Objective:
- *           BloomLevel: "Analyzing"
- *           Skills: [1, 2, 3]
- *           LearningContext: "Physics"
- *         Path:
+ *                   type: string
+ *           Skills:
+ *             type: array
+ *             items:
+ *               type: number
+ *           LearningContext:
+ *             type: string
+ *       Path:
+ *         type: object
+ *         properties:
  *           Nodes:
- *             - ID: 1
- *               Title: "Introduction"
- *               Type: "Content"
- *             - ID: 2
- *               Title: "Experiment"
- *               Type: "Activity"
- *             - ID: 3
- *               Title: "Discussion"
- *               Type: "Interaction"
- *             - ID: 4
- *               Title: "Assessment"
- *               Type: "Evaluation"
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 ID:
+ *                   type: number
+ *                 Title:
+ *                   type: string
+ *                 Type:
+ *                   type: string
  *           Edges:
- *             - SourceID: 1
- *               TargetID: 2
- *               Type: "Prerequisite"
- *             - SourceID: 2
- *               TargetID: 3
- *               Type: "Sequential"
- *             - SourceID: 3
- *               TargetID: 4
- *               Type: "Sequential"
+ *             type: array
+ *             items:
+ *               type: object
+ *               properties:
+ *                 SourceID:
+ *                   type: number
+ *                 TargetID:
+ *                   type: number
+ *                 Type:
+ *                   type: string
+ *     example:
+ *       Context:
+ *         EducatorExperience: "Experienced"
+ *         EducationContext: "High School"
+ *         Dimension: "Science"
+ *         LearnerExperience: "Intermediate"
+ *       Objective:
+ *         ID: 1
+ *         BloomLevel:
+ *           name: "Analyzing"
+ *           verbs: ["understand", "analyze"]
+ *         Skills: [1, 2, 3]
+ *         LearningContext: "Physics"
+ *       Path:
+ *         Nodes:
+ *           - ID: 1
+ *             Title: "Introduction"
+ *             Type: "Content"
+ *           - ID: 2
+ *             Title: "Experiment"
+ *             Type: "Activity"
+ *           - ID: 3
+ *             Title: "Discussion"
+ *             Type: "Interaction"
+ *           - ID: 4
+ *             Title: "Assessment"
+ *             Type: "Evaluation"
  */
-
 
 /**
  * @swagger
  * /api/saveLearningScenario:
  *   post:
- *     summary: Save a Learning Scenario
- *     description: Endpoint to save a Learning Scenario to the database.
+ *     summary: Save a learning scenario
+ *     description: Endpoint to save a learning scenario to the database.
  *     consumes:
  *       - application/json
  *     produces:
@@ -920,13 +938,73 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *     parameters:
  *       - in: body
  *         name: body
- *         description: JSON object containing a Learning Scenario.
+ *         description: JSON object containing a LearningScenario property.
  *         required: true
  *         schema:
- *           $ref: "#/definitions/LearningScenario"
+ *           type: object
+ *           properties:
+ *             LearningScenario:
+ *               type: object
+ *               properties:
+ *                 Context:
+ *                   type: object
+ *                   properties:
+ *                     EducatorExperience:
+ *                       type: string
+ *                     EducationContext:
+ *                       type: string
+ *                     Dimension:
+ *                       type: string
+ *                     LearnerExperience:
+ *                       type: string
+ *                 Objective:
+ *                   type: object
+ *                   properties:
+ *                     ID:
+ *                       type: number
+ *                     BloomLevel:
+ *                       type: object
+ *                       properties:
+ *                         name:
+ *                           type: string
+ *                         verbs:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                     Skills:
+ *                       type: array
+ *                       items:
+ *                         type: number
+ *                     LearningContext:
+ *                       type: string
+ *                 Path:
+ *                   type: object
+ *                   properties:
+ *                     Nodes:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           ID:
+ *                             type: number
+ *                           Title:
+ *                             type: string
+ *                           Type:
+ *                             type: string
+ *                     Edges:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           SourceID:
+ *                             type: number
+ *                           TargetID:
+ *                             type: number
+ *                           Type:
+ *                             type: string
  *     responses:
  *       200:
- *         description: Learning Scenario saved successfully
+ *         description: Learning scenario saved successfully
  *         schema:
  *           type: object
  *           properties:
@@ -934,7 +1012,8 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *               type: string
  *               description: Success message
  *             learningScenario:
- *               $ref: "#/definitions/LearningScenario"
+ *               type: object
+ *               description: The saved learning scenario object
  *       400:
  *         description: Bad request
  *         schema:
@@ -952,8 +1031,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *               type: string
  *               description: Error message
  */
-
-// Save a learning scenario
 app.post('/api/saveLearningScenario', async (req, res) => {
   const { LearningScenario: learningScenarioData } = req.body;
 
@@ -962,6 +1039,8 @@ app.post('/api/saveLearningScenario', async (req, res) => {
   }
 
   try {
+    // Your existing code to save the learning scenario goes here...
+
     // Create a new instance of the LearningScenario model
     const learningScenario = new LearningScenarioModel(learningScenarioData);
 
@@ -974,6 +1053,9 @@ app.post('/api/saveLearningScenario', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+
+
 
 /**
  * @swagger
@@ -1019,6 +1101,173 @@ app.get('/api/getAllLearningScenarios', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+
+/**
+ * @swagger
+ * definitions:
+ *   LearningObjective:
+ *     type: object
+ *     properties:
+ *       ID:
+ *         type: number
+ *       BloomLevel:
+ *         type: object
+ *         properties:
+ *           name:
+ *             type: string
+ *           verbs:
+ *             type: array
+ *             items:
+ *               type: string
+ *       Skills:
+ *         type: array
+ *         items:
+ *           type: number
+ *       LearningContext:
+ *         type: string
+ *     example:
+ *       ID: 1
+ *       BloomLevel:
+ *         name: "Analyzing"
+ *         verbs: ["understand", "analyze"]
+ *       Skills: [1, 2, 3]
+ *       LearningContext: "Physics"
+ */
+
+/**
+ * @swagger
+ * /api/getAllObjectives:
+ *   get:
+ *     summary: Get all learning objectives
+ *     description: Retrieve all learning objectives from the learning scenarios.
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - Learning Objectives
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         schema:
+ *           type: object
+ *           properties:
+ *             objectives:
+ *               type: array
+ *               items:
+ *                 $ref: '#/definitions/LearningObjective'
+ *         examples:
+ *           application/json:
+ *             objectives:
+ *               - ID: 1
+ *                 BloomLevel:
+ *                   name: "Analyzing"
+ *                   verbs: ["understand", "analyze"]
+ *                 Skills: [1, 2, 3]
+ *                 LearningContext: "Physics"
+ *               - ID: 2
+ *                 BloomLevel:
+ *                   name: "Evaluating"
+ *                   verbs: ["evaluate", "assess"]
+ *                 Skills: [4, 5, 6]
+ *                 LearningContext: "Chemistry"
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: Internal Server Error.
+ */
+app.get('/api/getAllObjectives', async (req, res) => {
+  try {
+    // Retrieve all objectives from the database
+    const objectives = await LearningScenarioModel.find({}, 'Objective');
+
+    res.json({ objectives });
+  } catch (error) {
+    console.error('Error retrieving objectives:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
+/**
+ * @swagger
+ * /api/getObjectiveById/{objectiveId}:
+ *   get:
+ *     summary: Get a learning objective by ID
+ *     description: Retrieve a learning objective from the learning scenarios by its ID.
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: objectiveId
+ *         in: path
+ *         description: ID of the learning objective to retrieve
+ *         required: true
+ *         type: number
+ *     tags:
+ *       - Learning Objectives
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         schema:
+ *           $ref: '#/definitions/LearningObjective'
+ *         examples:
+ *           application/json:
+ *             ID: 1
+ *             BloomLevel:
+ *               name: "Analyzing"
+ *               verbs: ["understand", "analyze"]
+ *             Skills: [1, 2, 3]
+ *             LearningContext: "Physics"
+ *       404:
+ *         description: Learning objective not found
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *           examples:
+ *             application/json:
+ *               error: Learning objective not found.
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: Internal Server Error.
+ */
+app.get('/api/getObjectiveById/:objectiveId', async (req, res) => {
+  const { objectiveId } = req.params;
+
+  try {
+    // Retrieve the objective by ID from the database
+    const objective = await LearningScenarioModel.findOne(
+      { 'Objective.ID': objectiveId },
+      'Objective'
+    );
+
+    if (!objective) {
+      return res.status(404).json({ error: 'Learning objective not found.' });
+    }
+
+    res.json(objective.Objective);
+  } catch (error) {
+    console.error('Error retrieving objective by ID:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
 
 
 
