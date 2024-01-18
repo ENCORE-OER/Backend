@@ -1102,6 +1102,53 @@ app.get('/api/getAllLearningScenarios', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/deleteAllLearningScenarios:
+ *   delete:
+ *     summary: Delete all learning scenarios
+ *     description: Delete all learning scenarios from the database.
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - Learning Scenarios
+ *     responses:
+ *       200:
+ *         description: Successful operation
+ *         schema:
+ *           type: object
+ *           properties:
+ *             message:
+ *               type: string
+ *               description: Success message
+ *           examples:
+ *             application/json:
+ *               message: All learning scenarios deleted successfully.
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ *         examples:
+ *           application/json:
+ *             error: Internal Server Error.
+ */
+app.delete('/api/deleteAllLearningScenarios', async (req, res) => {
+  try {
+    // Delete all learning scenarios from the database
+    await LearningScenarioModel.deleteMany({});
+
+    res.json({ message: 'All learning scenarios deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting all learning scenarios:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
+
 
 /**
  * @swagger
