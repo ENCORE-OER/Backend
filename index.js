@@ -1013,7 +1013,16 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *               description: Success message
  *             learningScenario:
  *               type: object
- *               description: The saved learning scenario object
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: ID of the saved learning scenario
+ *                 objective:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       description: ID of the objective within the learning scenario
  *       400:
  *         description: Bad request
  *         schema:
@@ -1047,13 +1056,18 @@ app.post('/api/saveLearningScenario', async (req, res) => {
     // Save the learning scenario
     const savedLearningScenario = await learningScenario.save();
 
-    res.json({ message: 'Learning scenario saved successfully.', learningScenario: savedLearningScenario });
+    // Extract relevant information for the response
+    const { _id, objective } = savedLearningScenario;
+
+    res.json({
+      message: 'Learning scenario saved successfully.',
+      learningScenario: { _id, objective },
+    });
   } catch (error) {
     console.error('Error saving Learning Scenario:', error);
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
-
 
 
 
