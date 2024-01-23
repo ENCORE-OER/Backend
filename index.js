@@ -852,8 +852,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *       Objective:
  *         type: object
  *         properties:
- *           ID:
- *             type: number
  *           BloomLevel:
  *             type: object
  *             properties:
@@ -901,7 +899,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *         Dimension: "Science"
  *         LearnerExperience: "Intermediate"
  *       Objective:
- *         ID: 1
  *         BloomLevel:
  *           name: "Analyzing"
  *           verbs: ["understand", "analyze"]
@@ -960,8 +957,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *                 Objective:
  *                   type: object
  *                   properties:
- *                     ID:
- *                       type: number
  *                     BloomLevel:
  *                       type: object
  *                       properties:
@@ -1068,6 +1063,7 @@ app.post('/api/saveLearningScenario', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
 
 
 
@@ -1269,7 +1265,7 @@ app.get('/api/getAllObjectives', async (req, res) => {
  *         in: path
  *         description: ID of the learning objective to retrieve
  *         required: true
- *         type: number
+ *         type: string
  *     tags:
  *       - Learning Objectives
  *     responses:
@@ -1279,7 +1275,7 @@ app.get('/api/getAllObjectives', async (req, res) => {
  *           $ref: '#/definitions/LearningObjective'
  *         examples:
  *           application/json:
- *             ID: 1
+ *             _id: "ObjectId"
  *             BloomLevel:
  *               name: "Analyzing"
  *               verbs: ["understand", "analyze"]
@@ -1314,7 +1310,7 @@ app.get('/api/getObjectiveById/:objectiveId', async (req, res) => {
   try {
     // Retrieve the objective by ID from the database
     const objective = await LearningScenarioModel.findOne(
-      { 'Objective.ID': objectiveId },
+      { 'Objective._id': objectiveId },
       'Objective'
     );
 
