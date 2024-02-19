@@ -87,7 +87,15 @@ const learningScenarioSchema = new mongoose.Schema({
     Dimension: String,
     LearnerExperience: String,
   },
-  Objective: learningObjectiveSchema, 
+  Objective: {
+    BloomLevel: {
+      name: String,
+      verbs: [String],
+    },
+    Skills: [Number],
+    LearningContext: String,
+    textLearningObjective: String, 
+  },
   Path: {
     Nodes: [
       {
@@ -105,6 +113,7 @@ const learningScenarioSchema = new mongoose.Schema({
     ],
   },
 });
+
 
 
 
@@ -867,6 +876,8 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *               type: number
  *           LearningContext:
  *             type: string
+ *           textLearningObjective:  
+ *             type: string        
  *       Path:
  *         type: object
  *         properties:
@@ -892,32 +903,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *                   type: number
  *                 Type:
  *                   type: string
- *     example:
- *       Context:
- *         EducatorExperience: "Experienced"
- *         EducationContext: "High School"
- *         Dimension: "Science"
- *         LearnerExperience: "Intermediate"
- *       Objective:
- *         BloomLevel:
- *           name: "Analyzing"
- *           verbs: ["understand", "analyze"]
- *         Skills: [1, 2, 3]
- *         LearningContext: "Physics"
- *       Path:
- *         Nodes:
- *           - ID: 1
- *             Title: "Introduction"
- *             Type: "Content"
- *           - ID: 2
- *             Title: "Experiment"
- *             Type: "Activity"
- *           - ID: 3
- *             Title: "Discussion"
- *             Type: "Interaction"
- *           - ID: 4
- *             Title: "Assessment"
- *             Type: "Evaluation"
  */
 
 /**
@@ -938,65 +923,7 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *         description: JSON object containing a LearningScenario property.
  *         required: true
  *         schema:
- *           type: object
- *           properties:
- *             LearningScenario:
- *               type: object
- *               properties:
- *                 Context:
- *                   type: object
- *                   properties:
- *                     EducatorExperience:
- *                       type: string
- *                     EducationContext:
- *                       type: string
- *                     Dimension:
- *                       type: string
- *                     LearnerExperience:
- *                       type: string
- *                 Objective:
- *                   type: object
- *                   properties:
- *                     BloomLevel:
- *                       type: object
- *                       properties:
- *                         name:
- *                           type: string
- *                         verbs:
- *                           type: array
- *                           items:
- *                             type: string
- *                     Skills:
- *                       type: array
- *                       items:
- *                         type: number
- *                     LearningContext:
- *                       type: string
- *                 Path:
- *                   type: object
- *                   properties:
- *                     Nodes:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           ID:
- *                             type: number
- *                           Title:
- *                             type: string
- *                           Type:
- *                             type: string
- *                     Edges:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           SourceID:
- *                             type: number
- *                           TargetID:
- *                             type: number
- *                           Type:
- *                             type: string
+ *           $ref: '#/definitions/LearningScenario'
  *     responses:
  *       200:
  *         description: Learning scenario saved successfully
@@ -1043,7 +970,6 @@ app.post('/api/saveLearningScenario', async (req, res) => {
   }
 
   try {
-    // Your existing code to save the learning scenario goes here...
 
     // Create a new instance of the LearningScenario model
     const learningScenario = new LearningScenarioModel(learningScenarioData);
