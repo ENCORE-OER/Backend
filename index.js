@@ -963,16 +963,19 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *               description: Error message
  */
 app.post('/api/saveLearningScenario', async (req, res) => {
-  const { LearningScenario: learningScenarioData } = req.body;
+  const data = req.body;
 
-  if (!learningScenarioData) {
+
+  if (!data) {
     return res.status(400).json({ error: 'Learning scenario is required.' });
   }
 
   try {
 
     // Create a new instance of the LearningScenario model
-    const learningScenario = new LearningScenarioModel(learningScenarioData);
+    const learningScenario = new LearningScenarioModel(data);
+
+    console.log("Learning Scenario: "+learningScenario);
 
     // Save the learning scenario
     const savedLearningScenario = await learningScenario.save();
