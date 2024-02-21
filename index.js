@@ -88,6 +88,7 @@ const learningScenarioSchema = new mongoose.Schema({
     LearnerExperience: String,
   },
   Objective: {
+    id: Number,
     BloomLevel: {
       name: String,
       verbs: [String],
@@ -113,16 +114,6 @@ const learningScenarioSchema = new mongoose.Schema({
     ],
   },
 });
-
-
-
-
-
-function generateUniqueID() {
-  // Implement your logic to generate a unique numeric ID
-  // For simplicity, a random number is generated
-  return Math.floor(Math.random() * 1000);
-}
 
 
 
@@ -861,6 +852,8 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *       Objective:
  *         type: object
  *         properties:
+ *           id: 
+ *             type: number
  *           BloomLevel:
  *             type: object
  *             properties:
@@ -981,11 +974,13 @@ app.post('/api/saveLearningScenario', async (req, res) => {
     const savedLearningScenario = await learningScenario.save();
 
     // Extract relevant information for the response
-    const { _id, objective } = savedLearningScenario;
+    const { _id, Objective } = savedLearningScenario;
+  
+    
 
     res.json({
       message: 'Learning scenario saved successfully.',
-      learningScenario: { _id, objective },
+      learningScenario: { _id, Objective: { ...Objective.toObject(), id: Objective.id } },
     });
   } catch (error) {
     console.error('Error saving Learning Scenario:', error);
@@ -1235,11 +1230,10 @@ app.get('/api/getAllObjectives', async (req, res) => {
  */
 app.get('/api/getObjectiveById/:objectiveId', async (req, res) => {
   const { objectiveId } = req.params;
-
   try {
     // Retrieve the objective by ID from the database
     const objective = await LearningScenarioModel.findOne(
-      { 'Objective._id': objectiveId },
+      { 'Objective.id': objectiveId },
       'Objective'
     );
 
