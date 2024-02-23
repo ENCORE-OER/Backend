@@ -68,10 +68,6 @@ const OER = mongoose.model('OER', oerSchema);
 
 // Define a schema for learning objectives
 const learningObjectiveSchema = new mongoose.Schema({
-  ID: {
-    type: Number,
-    default: 0,
-  },
   BloomLevel: {
     name: String,
     verbs: [String],
@@ -88,7 +84,6 @@ const learningScenarioSchema = new mongoose.Schema({
     LearnerExperience: String,
   },
   Objective: {
-    id: Number,
     BloomLevel: {
       name: String,
       verbs: [String],
@@ -852,8 +847,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *       Objective:
  *         type: object
  *         properties:
- *           id: 
- *             type: number
  *           BloomLevel:
  *             type: object
  *             properties:
@@ -932,12 +925,6 @@ app.delete('/api/deleteAllOERs', async (req, res) => {
  *                 _id:
  *                   type: string
  *                   description: ID of the saved learning scenario
- *                 objective:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                       description: ID of the objective within the learning scenario
  *       400:
  *         description: Bad request
  *         schema:
@@ -980,7 +967,7 @@ app.post('/api/saveLearningScenario', async (req, res) => {
 
     res.json({
       message: 'Learning scenario saved successfully.',
-      learningScenario: { _id, Objective: { ...Objective.toObject(), id: Objective.id } },
+      learningScenario: { _id, Objective: { ...Objective.toObject() } },
     });
   } catch (error) {
     console.error('Error saving Learning Scenario:', error);
@@ -1082,16 +1069,12 @@ app.delete('/api/deleteAllLearningScenarios', async (req, res) => {
   }
 });
 
-
-
 /**
  * @swagger
  * definitions:
  *   LearningObjective:
  *     type: object
  *     properties:
- *       ID:
- *         type: number
  *       BloomLevel:
  *         type: object
  *         properties:
@@ -1107,147 +1090,108 @@ app.delete('/api/deleteAllLearningScenarios', async (req, res) => {
  *           type: number
  *       LearningContext:
  *         type: string
- *     example:
- *       ID: 1
- *       BloomLevel:
- *         name: "Analyzing"
- *         verbs: ["understand", "analyze"]
- *       Skills: [1, 2, 3]
- *       LearningContext: "Physics"
- */
-
-/**
- * @swagger
- * /api/getAllObjectives:
- *   get:
- *     summary: Get all learning objectives
- *     description: Retrieve all learning objectives from the learning scenarios.
- *     produces:
- *       - application/json
- *     tags:
- *       - Learning Objectives
- *     responses:
- *       200:
- *         description: Successful operation
- *         schema:
- *           type: object
- *           properties:
- *             objectives:
- *               type: array
- *               items:
- *                 $ref: '#/definitions/LearningObjective'
- *         examples:
- *           application/json:
- *             objectives:
- *               - ID: 1
- *                 BloomLevel:
- *                   name: "Analyzing"
- *                   verbs: ["understand", "analyze"]
- *                 Skills: [1, 2, 3]
- *                 LearningContext: "Physics"
- *               - ID: 2
- *                 BloomLevel:
- *                   name: "Evaluating"
- *                   verbs: ["evaluate", "assess"]
- *                 Skills: [4, 5, 6]
- *                 LearningContext: "Chemistry"
- *       500:
- *         description: Internal Server Error
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message
- *         examples:
- *           application/json:
- *             error: Internal Server Error.
- */
-app.get('/api/getAllObjectives', async (req, res) => {
-  try {
-    // Retrieve all objectives from the database
-    const objectives = await LearningScenarioModel.find({}, 'Objective');
-
-    res.json({ objectives });
-  } catch (error) {
-    console.error('Error retrieving objectives:', error);
-    res.status(500).json({ error: 'Internal Server Error.' });
-  }
-});
-
-
-/**
- * @swagger
- * /api/getObjectiveById/{objectiveId}:
- *   get:
- *     summary: Get a learning objective by ID
- *     description: Retrieve a learning objective from the learning scenarios by its ID.
- *     produces:
- *       - application/json
- *     parameters:
- *       - name: objectiveId
- *         in: path
- *         description: ID of the learning objective to retrieve
- *         required: true
+ *       textLearningObjective:
  *         type: string
+ */
+
+/**
+ * @swagger
+ * /api/updateLearningObjective/{id}:
+ *   put:
+ *     summary: Update learning objective of a learning scenario
+ *     description: Endpoint to update the learning objective of a learning scenario in the database.
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
  *     tags:
- *       - Learning Objectives
- *     responses:
- *       200:
- *         description: Successful operation
+ *       - Learning Scenarios
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         description: ID of the learning scenario to update.
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: body
+ *         name: body
+ *         description: Request body for updating the learning objective.
+ *         required: true
  *         schema:
  *           $ref: '#/definitions/LearningObjective'
- *         examples:
+ *     responses:
+ *       200:
+ *         description: Learning objective updated successfully
+ *         content:
  *           application/json:
- *             _id: "ObjectId"
- *             BloomLevel:
- *               name: "Analyzing"
- *               verbs: ["understand", "analyze"]
- *             Skills: [1, 2, 3]
- *             LearningContext: "Physics"
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Success message
+ *                 updatedLearningObjective:
+ *                   $ref: '#/definitions/LearningObjective'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  *       404:
- *         description: Learning objective not found
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message
- *           examples:
- *             application/json:
- *               error: Learning objective not found.
+ *         description: Learning scenario not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  *       500:
  *         description: Internal Server Error
- *         schema:
- *           type: object
- *           properties:
- *             error:
- *               type: string
- *               description: Error message
- *         examples:
+ *         content:
  *           application/json:
- *             error: Internal Server Error.
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Error message
  */
-app.get('/api/getObjectiveById/:objectiveId', async (req, res) => {
-  const { objectiveId } = req.params;
-  try {
-    // Retrieve the objective by ID from the database
-    const objective = await LearningScenarioModel.findOne(
-      { 'Objective.id': objectiveId },
-      'Objective'
-    );
 
-    if (!objective) {
-      return res.status(404).json({ error: 'Learning objective not found.' });
+app.put('/api/updateLearningObjective/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  const { BloomLevel, Skills, LearningContext, textLearningObjective } = req.body;
+
+  try {
+    // Find the learning scenario by ID
+    const learningScenario = await LearningScenarioModel.findById(id);
+
+    if (!learningScenario) {
+      return res.status(404).json({ error: 'Learning scenario not found.' });
     }
 
-    res.json(objective.Objective);
+    // Update the learning objective
+    learningScenario.Objective = { BloomLevel, Skills, LearningContext, textLearningObjective };
+
+    // Save the updated learning scenario
+    await learningScenario.save();
+
+    res.json({
+      message: 'Learning objective updated successfully.',
+      updatedLearningObjective: { BloomLevel, Skills, LearningContext, textLearningObjective },
+    });
   } catch (error) {
-    console.error('Error retrieving objective by ID:', error);
+    console.error('Error updating learning objective:', error);
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
-
 
 
 
