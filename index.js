@@ -137,10 +137,11 @@ const learningPathSchema = new mongoose.Schema({
     TextLearningObjectives: [String],
   },
   Path: {
-    Title: String,
+    TitleLearningPath: String,
     MacroSubject: String,
     LessonPlan: [
       {
+        ActivityTitle: String,
         TypeOfAssignment: String,
         TypeOfActivity: String,
         Time: Number,
@@ -156,7 +157,7 @@ const learningPathSchema = new mongoose.Schema({
           Files: [
             {
               Name: String,
-              File: Buffer, // Assuming the file is stored as a buffer
+              File: String,
             },
           ],
         },
@@ -184,11 +185,9 @@ const learningPathSchema = new mongoose.Schema({
       ],
     },
   },
-});
+}, { timestamps: true }); // This adds createdAt and updatedAt fields
 
 const LearningPath = mongoose.model('LearningPath', learningPathSchema);
-
-
 
 
 
@@ -1308,7 +1307,7 @@ app.put('/api/updateLearningObjective/:id', async (req, res) => {
  *       Path:
  *         type: object
  *         properties:
- *           Title:
+ *           TitleLearningPath:
  *             type: string
  *           MacroSubject:
  *             type: string
@@ -1317,6 +1316,8 @@ app.put('/api/updateLearningObjective/:id', async (req, res) => {
  *             items:
  *               type: object
  *               properties:
+ *                 ActivityTitle:
+ *                   type: string
  *                 TypeOfAssignment:
  *                   type: string
  *                 TypeOfActivity:
@@ -1440,6 +1441,7 @@ app.put('/api/updateLearningObjective/:id', async (req, res) => {
  *               type: string
  *               description: Error message
  */
+
 app.post('/api/saveLearningPath', async (req, res) => {
   const data = req.body;
 
@@ -1462,12 +1464,13 @@ app.post('/api/saveLearningPath', async (req, res) => {
 });
 
 
+
 /**
  * @swagger
  * /api/updateLearningPath/{id}:
- *   patch:
- *     summary: Update a learning path
- *     description: Endpoint to update a learning path with partial data.
+ *   put:
+ *     summary: Update an existing learning path
+ *     description: Endpoint to update an existing learning path in the database.
  *     consumes:
  *       - application/json
  *     produces:
@@ -1477,132 +1480,15 @@ app.post('/api/saveLearningPath', async (req, res) => {
  *     parameters:
  *       - in: path
  *         name: id
- *         description: ID of the learning path to update.
+ *         description: ID of the learning path to update
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *       - in: body
  *         name: body
- *         description: JSON object containing the fields to update.
+ *         description: JSON object containing updated LearningPath properties.
  *         required: true
  *         schema:
- *           type: object
- *           properties:
- *             Context:
- *               type: object
- *               properties:
- *                 EducatorExperience:
- *                   type: string
- *                 EducationContext:
- *                   type: string
- *                 Dimension:
- *                   type: string
- *                 LearnerExperience:
- *                   type: string
- *             Objective:
- *               type: object
- *               properties:
- *                 BloomLevel:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                     verbs:
- *                       type: array
- *                       items:
- *                         type: string
- *                 SkillsConcepts:
- *                   type: array
- *                   items:
- *                     type: number
- *                 LearningContext:
- *                   type: string
- *                 TextLearningObjectives:
- *                   type: array
- *                   items:
- *                     type: string
- *             Path:
- *               type: object
- *               properties:
- *                 Title:
- *                   type: string
- *                 MacroSubject:
- *                   type: string
- *                 LessonPlan:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       TypeOfAssignment:
- *                         type: string
- *                       TypeOfActivity:
- *                         type: string
- *                       Time:
- *                         type: number
- *                       Description:
- *                         type: string
- *                       Topic:
- *                         type: string
- *                       Content:
- *                         type: object
- *                         properties:
- *                           OERs:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 id_oer:
- *                                   type: number
- *                                 Title:
- *                                   type: string
- *                           Files:
- *                             type: array
- *                             items:
- *                               type: object
- *                               properties:
- *                                 Name:
- *                                   type: string
- *                                 File:
- *                                   type: string
- *                                   format: binary
- *                       Compulsory:
- *                         type: boolean
- *                       Conditions:
- *                         type: object
- *                         properties:
- *                           Pass:
- *                             type: array
- *                             items:
- *                               type: string
- *                           Fail:
- *                             type: array
- *                             items:
- *                               type: string
- *                 Graph:
- *                   type: object
- *                   properties:
- *                     Nodes:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           ID:
- *                             type: number
- *                           Title:
- *                             type: string
- *                           Type:
- *                             type: string
- *                     Edges:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           SourceID:
- *                             type: number
- *                           TargetID:
- *                             type: number
- *                           Type:
- *                             type: string
+ *           $ref: '#/definitions/LearningPath'
  *     responses:
  *       200:
  *         description: Learning path updated successfully
@@ -1612,9 +1498,12 @@ app.post('/api/saveLearningPath', async (req, res) => {
  *             message:
  *               type: string
  *               description: Success message
- *             updatedLearningPath:
+ *             learningPath:
  *               type: object
- *               $ref: '#/definitions/LearningPath'
+ *               properties:
+ *                 _id:
+ *                   type: string
+ *                   description: ID of the updated learning path
  *       400:
  *         description: Bad request
  *         schema:
@@ -1640,13 +1529,16 @@ app.post('/api/saveLearningPath', async (req, res) => {
  *               type: string
  *               description: Error message
  */
-app.patch('/api/updateLearningPath/:id', async (req, res) => {
+app.put('/api/updateLearningPath/:id', async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
+  const updatedData = req.body;
+
+  if (!updatedData) {
+    return res.status(400).json({ error: 'Updated learning path data is required.' });
+  }
 
   try {
-    // Find the learning path by ID and update it with the new data
-    const updatedLearningPath = await LearningPath.findByIdAndUpdate(id, updates, { new: true });
+    const updatedLearningPath = await LearningPath.findByIdAndUpdate(id, updatedData, { new: true });
 
     if (!updatedLearningPath) {
       return res.status(404).json({ error: 'Learning path not found.' });
@@ -1654,13 +1546,178 @@ app.patch('/api/updateLearningPath/:id', async (req, res) => {
 
     res.json({
       message: 'Learning path updated successfully.',
-      updatedLearningPath,
+      learningPath: { _id: updatedLearningPath._id },
     });
   } catch (error) {
     console.error('Error updating learning path:', error);
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+
+
+/**
+ * @swagger
+ * /api/getAllLearningPaths:
+ *   get:
+ *     summary: Get all learning paths
+ *     description: Endpoint to retrieve all learning paths from the database.
+ *     produces:
+ *       - application/json
+ *     tags:
+ *       - Learning Paths
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all learning paths
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               _id:
+ *                 type: string
+ *               Context:
+ *                 type: object
+ *                 properties:
+ *                   EducatorExperience:
+ *                     type: string
+ *                   EducationContext:
+ *                     type: string
+ *                   Dimension:
+ *                     type: string
+ *                   LearnerExperience:
+ *                     type: string
+ *               Objective:
+ *                 type: object
+ *                 properties:
+ *                   BloomLevel:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                       verbs:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                   SkillsConcepts:
+ *                     type: array
+ *                     items:
+ *                       type: number
+ *                   LearningContext:
+ *                     type: string
+ *                   TextLearningObjectives:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *               Path:
+ *                 type: object
+ *                 properties:
+ *                   TitleLearningPath:
+ *                     type: string
+ *                   MacroSubject:
+ *                     type: string
+ *                   LessonPlan:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         ActivityTitle:
+ *                           type: string
+ *                         TypeOfAssignment:
+ *                           type: string
+ *                         TypeOfActivity:
+ *                           type: string
+ *                         Time:
+ *                           type: number
+ *                         Description:
+ *                           type: string
+ *                         Topic:
+ *                           type: string
+ *                         Content:
+ *                           type: object
+ *                           properties:
+ *                             OERs:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id_oer:
+ *                                     type: number
+ *                                   Title:
+ *                                     type: string
+ *                             Files:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   Name:
+ *                                     type: string
+ *                                   File:
+ *                                     type: string
+ *                                     format: binary
+ *                         Compulsory:
+ *                           type: boolean
+ *                         Conditions:
+ *                           type: object
+ *                           properties:
+ *                             Pass:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                             Fail:
+ *                               type: array
+ *                               items:
+ *                                 type: string
+ *                   Graph:
+ *                     type: object
+ *                     properties:
+ *                       Nodes:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             ID:
+ *                               type: number
+ *                             Title:
+ *                               type: string
+ *                             Type:
+ *                               type: string
+ *                       Edges:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             SourceID:
+ *                               type: number
+ *                             TargetID:
+ *                               type: number
+ *                             Type:
+ *                               type: string
+ *               createdAt:
+ *                 type: string
+ *                 format: date-time
+ *               updatedAt:
+ *                 type: string
+ *                 format: date-time
+ *       500:
+ *         description: Internal Server Error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             error:
+ *               type: string
+ *               description: Error message
+ */
+app.get('/api/getAllLearningPaths', async (req, res) => {
+  try {
+    const learningPaths = await LearningPath.find();
+    res.json(learningPaths);
+  } catch (error) {
+    console.error('Error retrieving learning paths:', error);
+    res.status(500).json({ error: 'Internal Server Error.' });
+  }
+});
+
 
 
 
