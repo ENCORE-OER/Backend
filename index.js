@@ -301,6 +301,7 @@ app.post('/api/saveKeyword', async (req, res) => {
 
   const lowercaseKeyword = keyword.toLowerCase();
   const timestamp = new Date().toISOString(); // Current timestamp
+  console.log("timestamp: ------- "+timestamp);
 
   try {
     // Update or insert the keyword, updating timestamps
