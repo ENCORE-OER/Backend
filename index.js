@@ -238,6 +238,10 @@ app.post('/api/saveLearningPath', async (req, res) => {
   }
 });
 
+app.get('/api/health', async (req, res) => {
+  return res.json({"status": "OK"});
+});
+
 // Start Server
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
