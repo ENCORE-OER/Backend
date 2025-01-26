@@ -300,21 +300,32 @@ app.post('/api/saveKeyword', async (req, res) => {
   }
 
   const lowercaseKeyword = keyword.toLowerCase();
-  const timestamp = new Date().toISOString(); // Add timestamp
+  const timestamp = new Date().toISOString(); // Current timestamp
 
   try {
+    // Update or insert the keyword, updating timestamps
     const savedKeyword = await Keyword.findOneAndUpdate(
       { value: lowercaseKeyword },
-      { value: lowercaseKeyword, lastUpdated: timestamp },
+      {
+        value: lowercaseKeyword,
+        $setOnInsert: { createdAt: timestamp }, // Set createdAt only when inserting
+        lastUpdated: timestamp, // Update lastUpdated on every save
+      },
       { upsert: true, new: true }
     );
 
-    console.log(`[${timestamp}] Keyword saved: ${lowercaseKeyword}`); // Log timestamp
-    res.json({ message: 'Keyword saved successfully.', keyword: savedKeyword.value });
+    console.log(`[${timestamp}] Keyword saved: ${lowercaseKeyword}`); // Log the save operation
+    res.json({
+      message: 'Keyword saved successfully.',
+      keyword: savedKeyword.value,
+      lastUpdated: savedKeyword.lastUpdated,
+    });
   } catch (error) {
+    console.error('Error saving keyword:', error);
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
 
 /**
  * @swagger
