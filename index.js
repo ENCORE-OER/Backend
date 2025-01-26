@@ -855,17 +855,22 @@ app.get('/api/getLikes/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-      const oer = await OER.findOne({ id });
+    // Find the OER by its ID
+    const oer = await OER.findOne({ id });
 
-      if (oer) {
-          res.json({ likes: oer.likes });
-      } else {
-          res.status(404).json({ error: 'OER not found.' });
-      }
+    if (oer) {
+      // If OER exists, return the likes count
+      res.json({ likes: oer.likes });
+    } else {
+      // If OER does not exist, skip further processing and return default response
+      res.status(404).json({ message: `No OER found with ID: ${id}. Skipping operation.` });
+    }
   } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error.' });
+    // Handle server errors
+    res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
 
 
 /**
