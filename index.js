@@ -27,14 +27,15 @@ connection.once('open', () => {
 // Enable CORS for all routes
 app.use(require('cors')());
 
-// Define a simple schema for keywords
+// schema for keywords
 const keywordSchema = new mongoose.Schema({
-  value: {
-    type: String,
-    unique: true, // Ensures uniqueness
-    required: true,
-  },
+  value: { type: String, unique: true, required: true },
+  dateSaved: { type: Date }, // Set when the keyword is first saved
+  lastUpdated: { type: Date }, // Updated whenever the keyword is modified
+  usageCount: { type: Number, default: 0 }, // Tracks the number of times the keyword has been saved or updated
 });
+
+
 
 const Keyword = mongoose.model('Keyword', keywordSchema);
 
@@ -301,31 +302,55 @@ app.post('/api/saveKeyword', async (req, res) => {
 
   const lowercaseKeyword = keyword.toLowerCase();
   const timestamp = new Date().toISOString(); // Current timestamp
-  console.log("timestamp: ------- "+timestamp);
 
   try {
-    // Update or insert the keyword, updating timestamps
-    const savedKeyword = await Keyword.findOneAndUpdate(
-      { value: lowercaseKeyword },
-      {
-        value: lowercaseKeyword,
-        $setOnInsert: { createdAt: timestamp }, // Set createdAt only when inserting
-        lastUpdated: timestamp, // Update lastUpdated on every save
-      },
-      { upsert: true, new: true }
-    );
+    // Check if the keyword already exists
+    const existingKeyword = await Keyword.findOne({ value: lowercaseKeyword });
 
-    console.log(`[${timestamp}] Keyword saved: ${lowercaseKeyword}`); // Log the save operation
-    res.json({
-      message: 'Keyword saved successfully.',
-      keyword: savedKeyword.value,
-      lastUpdated: savedKeyword.lastUpdated,
-    });
+    if (existingKeyword) {
+      // Ensure all fields are present in the existing keyword
+      existingKeyword.dateSaved = existingKeyword.dateSaved || timestamp; // Set if not already present
+      existingKeyword.usageCount = existingKeyword.usageCount || 0; // Set default if missing
+      existingKeyword.usageCount += 1; // Increment usageCount
+      existingKeyword.lastUpdated = timestamp; // Update lastUpdated
+      await existingKeyword.save();
+
+      console.log(`[${timestamp}] Keyword updated: ${lowercaseKeyword}`);
+      res.json({
+        message: 'Keyword updated successfully.',
+        keyword: existingKeyword.value,
+        dateSaved: existingKeyword.dateSaved,
+        lastUpdated: existingKeyword.lastUpdated,
+        usageCount: existingKeyword.usageCount,
+      });
+    } else {
+      // Create a new keyword with all required fields
+      const newKeyword = new Keyword({
+        value: lowercaseKeyword,
+        dateSaved: timestamp,
+        lastUpdated: timestamp,
+        usageCount: 1, // Initial usage count
+      });
+      await newKeyword.save();
+
+      console.log(`[${timestamp}] Keyword saved: ${lowercaseKeyword}`);
+      res.json({
+        message: 'Keyword saved successfully.',
+        keyword: newKeyword.value,
+        dateSaved: newKeyword.dateSaved,
+        lastUpdated: newKeyword.lastUpdated,
+        usageCount: newKeyword.usageCount,
+      });
+    }
   } catch (error) {
-    console.error('Error saving keyword:', error);
+    console.error('Error saving or updating keyword:', error);
     res.status(500).json({ error: 'Internal Server Error.' });
   }
 });
+
+
+
+
 
 
 /**
